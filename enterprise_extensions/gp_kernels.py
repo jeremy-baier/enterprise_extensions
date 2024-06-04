@@ -76,7 +76,7 @@ def matern_kernel(avetoas, log10_sigma=-7, log10_ell=2,
     """Matern kernel for DM"""
     # copied from sklearn's Matern kernel
         # nu -- The parameter nu controlling the smoothness of the learned function. The smaller nu, the less smooth the approximated function is. For nu=inf, the kernel becomes equivalent to the RBF kernel and for nu=0.5 to the absolute exponential kernel. Important intermediate values are nu=1.5 (once differentiable functions) and nu=2.5 (twice differentiable functions). Note that values of nu not in [0.5, 1.5, 2.5, inf] incur a considerably higher computational cost (appr. 10 times higher) since they require to evaluate the modified Bessel function. Furthermore, in contrast to l, nu is kept fixed to its initial value and not optimized.
-    #r = np.abs(avetoas[None, :] - avetoas[:, None])
+    r = np.abs(avetoas[None, :] - avetoas[:, None])
     # Convert everything into seconds
     l = 10**log10_ell * 86400
     sigma = 10**log10_sigma
