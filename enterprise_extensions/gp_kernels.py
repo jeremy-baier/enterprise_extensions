@@ -2,11 +2,13 @@
 
 import numpy as np
 from enterprise.signals import signal_base, utils
+from sklearn.gaussian_process.kernels import Matern
 
 __all__ = ['linear_interp_basis_dm',
            'linear_interp_basis_freq',
            'dmx_ridge_prior',
            'periodic_kernel',
+           'matern_kernel',
            'se_kernel',
            'se_dm_kernel',
            'get_tf_quantization_matrix',
@@ -52,7 +54,6 @@ def dmx_ridge_prior(avetoas, log10_sigma_ridge=-7):
     sigma = 10**log10_sigma_ridge
     return sigma**2 * np.ones_like(avetoas)
 
-
 @signal_base.function
 def periodic_kernel(avetoas, log10_sigma=-7, log10_ell=2,
                     log10_gam_p=0, log10_p=0):
@@ -66,6 +67,25 @@ def periodic_kernel(avetoas, log10_sigma=-7, log10_ell=2,
     gam_p = 10**log10_gam_p
     d = np.eye(r.shape[0]) * (sigma/500)**2
     K = sigma**2 * np.exp(-r**2/2/l**2 - gam_p*np.sin(np.pi*r/p)**2) + d
+    return K
+
+
+@signal_base.function
+def matern_kernel(avetoas, log10_sigma=-7, log10_ell=2, 
+                  nu=1.5, ls_bounds=(1e-05, 100000.0)):
+    """Matern kernel for DM"""
+    # copied from sklearn's Matern kernel
+        # nu -- The parameter nu controlling the smoothness of the learned function. The smaller nu, the less smooth the approximated function is. For nu=inf, the kernel becomes equivalent to the RBF kernel and for nu=0.5 to the absolute exponential kernel. Important intermediate values are nu=1.5 (once differentiable functions) and nu=2.5 (twice differentiable functions). Note that values of nu not in [0.5, 1.5, 2.5, inf] incur a considerably higher computational cost (appr. 10 times higher) since they require to evaluate the modified Bessel function. Furthermore, in contrast to l, nu is kept fixed to its initial value and not optimized.
+    r = np.abs(avetoas[None, :] - avetoas[:, None])
+    # Convert everything into seconds
+    l = 10**log10_ell * 86400
+    sigma = 10**log10_sigma
+    d = np.eye(r.shape[0]) * (sigma/500)**2
+    K = sigma**2 * Matern(
+        length_scale=l, 
+        nu=nu, 
+        length_scale_bounds=ls_bounds
+        ) + d
     return K
 
 
