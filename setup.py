@@ -60,6 +60,7 @@ setup(
         "enterprise_extensions",
         "enterprise_extensions.frequentist",
         "enterprise_extensions.chromatic",
+        "enterprise_extensions.gibbs_sampling"
     ],
     package_data={
         "enterprise_extensions.chromatic": [
