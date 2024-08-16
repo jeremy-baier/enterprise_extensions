@@ -43,9 +43,9 @@ class BayesPowerSingle(object):
         ecorr_type="kernel",
         noise_dict=None,
         tm_marg=False,
-        rn_nfbin=None,
-        dm_nfbin=None,
-        chrom_nfbin=None,
+        rn_components=None,
+        dm_components=None,
+        chrom_components=None,
         tnequad=True,
         log10rhomin=-9.0,
         log10rhomax=-4.0,
@@ -79,8 +79,14 @@ class BayesPowerSingle(object):
         tm_marg: bool
             whether to marginalize over timing model parameters (do not use this if you are varying the white noise!)
 
-        freq_bins: int
-            number of frequency bins for the red noise process
+        rn_components: int
+            number of red noise Fourier modes to include
+            
+        dm_components: int
+            number of DM noise Fourier modes to include
+        
+        chrom_components: int
+            number of chromatic noise Fourier modes to include
 
         log10rhomin: float
             lower bound for the log10 of the rho parameter.
@@ -105,7 +111,7 @@ class BayesPowerSingle(object):
         self.wn_names = ["efac", "equad", "ecorr"]
         self.rhomin = log10rhomin
         self.rhomax = log10rhomax
-        self.freq_bins = freq_bins
+        self.rn_components = rn_components
         self.low = 10 ** (2 * self.rhomin)
         self.high = 10 ** (2 * self.rhomax)
 
@@ -142,7 +148,7 @@ class BayesPowerSingle(object):
             Tspan=self.Tspan,
             logmin=self.rhomin,
             logmax=self.rhomax,
-            components=freq_bins,
+            components=rn_components,
             gamma_val=None,
             name="gw",
         )
