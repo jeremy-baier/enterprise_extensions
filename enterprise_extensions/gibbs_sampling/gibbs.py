@@ -43,9 +43,11 @@ class BayesPowerSingle(object):
         ecorr_type="kernel",
         noise_dict=None,
         tm_marg=False,
-        rn_components=None,
+        rn_components=30,
         dm_components=None,
         chrom_components=None,
+        dm_type = "gibbs",
+        chrom_type = "gibbs",
         tnequad=True,
         log10rhomin=-9.0,
         log10rhomax=-4.0,
@@ -87,6 +89,12 @@ class BayesPowerSingle(object):
         
         chrom_components: int
             number of chromatic noise Fourier modes to include
+            
+        dm_type: str
+            the type of DM noise to use. Choose between 'gibbs' or 'mcmc' or None (for DMX)
+        
+        chrom_type: str
+            the type of chromatic noise to use. Choose between 'gibbs' or 'mcmc' or None (for no chromatic noise)
 
         log10rhomin: float
             lower bound for the log10 of the rho parameter.
@@ -552,11 +560,24 @@ class BayesPowerSingle(object):
             list(map(lambda x: str(x.__repr__()), self.pta.params)),
             fmt="%s",
         )
-        freqs = np.arange(
+        rn_freqs = np.arange(
             1 / self.Tspan,
             (self.freq_bins + 0.001) / self.Tspan,
             1 / self.Tspan)
-        np.save(savepath + "/freqs.npy", freqs)
+        np.save(savepath + "/rn_freqs.npy", rn_freqs)
+        
+        if self.dm_type == 'gibbs':
+            dm_freqs = np.arange(
+                1 / self.Tspan,
+                (self.freq_bins + 0.001) / self.Tspan,
+                1 / self.Tspan)
+            np.save(savepath + "/dm_freqs.npy", dm_freqs)
+        if self.chrom_type == 'gibbs':
+            chrom_freqs = np.arange(
+                1 / self.Tspan,
+                (self.freq_bins + 0.001) / self.Tspan,
+                1 / self.Tspan)
+            np.save(savepath + "/chrom_freqs.npy", chrom_freqs)
         [os.remove(dpa) for dpa in glob.glob(savepath + "/*jump.txt")]
 
         xnew = self._xs.copy()
