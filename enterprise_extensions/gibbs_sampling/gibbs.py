@@ -122,6 +122,8 @@ class BayesPowerSingle(object):
         self.rn_components = rn_components
         self.dm_components = dm_components
         self.chrom_components = chrom_components
+        self.dm_type = dm_type
+        self.chrom_type = chrom_type
         self.low = 10 ** (2 * self.rhomin)
         self.high = 10 ** (2 * self.rhomax)
 
