@@ -120,6 +120,8 @@ class BayesPowerSingle(object):
         self.rhomin = log10rhomin
         self.rhomax = log10rhomax
         self.rn_components = rn_components
+        self.dm_components = dm_components
+        self.chrom_components = chrom_components
         self.low = 10 ** (2 * self.rhomin)
         self.high = 10 ** (2 * self.rhomax)
 
@@ -562,20 +564,20 @@ class BayesPowerSingle(object):
         )
         rn_freqs = np.arange(
             1 / self.Tspan,
-            (self.freq_bins + 0.001) / self.Tspan,
+            (self.rn_components + 0.001) / self.Tspan,
             1 / self.Tspan)
         np.save(savepath + "/rn_freqs.npy", rn_freqs)
         
         if self.dm_type == 'gibbs':
             dm_freqs = np.arange(
                 1 / self.Tspan,
-                (self.freq_bins + 0.001) / self.Tspan,
+                (self.dm_components + 0.001) / self.Tspan,
                 1 / self.Tspan)
             np.save(savepath + "/dm_freqs.npy", dm_freqs)
         if self.chrom_type == 'gibbs':
             chrom_freqs = np.arange(
                 1 / self.Tspan,
-                (self.freq_bins + 0.001) / self.Tspan,
+                (self.chrom_components + 0.001) / self.Tspan,
                 1 / self.Tspan)
             np.save(savepath + "/chrom_freqs.npy", chrom_freqs)
         [os.remove(dpa) for dpa in glob.glob(savepath + "/*jump.txt")]
