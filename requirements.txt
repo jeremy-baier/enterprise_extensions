@@ -10,3 +10,4 @@ scikit-learn==1.0.1
 emcee
 ptmcmcsampler
 numdifftools
+tqdm
