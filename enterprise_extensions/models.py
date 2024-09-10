@@ -28,7 +28,7 @@ def model_singlepsr_noise(psr, tm_var=False, tm_linear=False,
                           tmparam_list=None,
                           red_var=True, psd='powerlaw', red_select=None,
                           noisedict=None, tm_svd=False, tm_norm=True,
-                          white_vary=True, components=30, upper_limit=False,
+                          white_vary=True, gp_ecorr=False, components=30, upper_limit=False,
                           is_wideband=False, use_dmdata=False, tnequad=False,
                           dmjump_var=False, gamma_val=None, dm_var=False,
                           dm_type='gp', dmgp_kernel='diag', dm_psd='powerlaw',
@@ -59,7 +59,7 @@ def model_singlepsr_noise(psr, tm_var=False, tm_linear=False,
                           Tspan=None, fact_like_gamma=13./3, gw_components=10,
                           fact_like_logmin=None, fact_like_logmax=None,
                           select='backend', tm_marg=False, dense_like=False, ng_twg_setup=False, wb_efac_sigma=0.25,
-                          vary_dm=True, vary_chrom=True):
+                          vary_dm=True, vary_chrom=True, chrom_gp_idx_prior_upper_bound=7):
     """
     Single pulsar noise model.
 
@@ -73,6 +73,7 @@ def model_singlepsr_noise(psr, tm_var=False, tm_linear=False,
     :param tm_svd: boolean for svd-stabilised timing model design matrix
     :param tm_norm: normalize the timing model, or provide custom normalization
     :param white_vary: boolean for varying white noise or keeping fixed
+    :param gp_ecorr: whether to use GP (kernel) model for ECORR (true) or basis ecorr (false, default)
     :param components: number of modes in Fourier domain processes
     :param dm_components: number of modes in Fourier domain DM processes
     :param upper_limit: whether to do an upper-limit analysis
@@ -96,7 +97,8 @@ def model_singlepsr_noise(psr, tm_var=False, tm_linear=False,
     :param chrom_psd: power-spectral density of chromatic noise
         ['powerlaw','tprocess','free_spectrum']
     :param chrom_idx: frequency scaling of chromatic noise. use 'vary' to vary
-        between [2.5,5].
+        between [2.5,chrom_gp_idx_prior_upper_bound].
+    :param chrom_gp_idx_prior_upper_bound: upper bound on the prior for chromatic index. default is 7.
     :param chrom_kernel: Type of 'nondiag' time-domain chrom GP kernel to use
         ['periodic', 'sq_exp','periodic_rfband', 'sq_exp_rfband']
     :param chrom_quad: Whether to add a quadratic chromatic term. Boolean
@@ -235,7 +237,7 @@ def model_singlepsr_noise(psr, tm_var=False, tm_linear=False,
                                     coefficients=coefficients,
                                     vary=vary_dm)
         elif dm_type == 'dmx':
-            s += chrom.dmx_signal(dmx_data=dmx_data[psr.name],vary=vary_dm)
+            s += chrom.dmx_signal(dmx_data=dmx_data[psr.name], vary=vary_dm)
         if dm_annual:
             s += chrom.dm_annual_signal(vary=vary_dm)
 
@@ -313,7 +315,7 @@ def model_singlepsr_noise(psr, tm_var=False, tm_linear=False,
             s += solar_wind_block(ACE_prior=True, include_swgp=dm_sw_gp,
                                   swgp_prior=swgp_prior, swgp_basis=swgp_basis,
                                   Tspan=Tspan)
-            
+
     if chrom_gp:
         s += chromatic_noise_block(gp_kernel=chrom_gp_kernel,
                                    psd=chrom_psd, idx=chrom_idx,
@@ -323,19 +325,20 @@ def model_singlepsr_noise(psr, tm_var=False, tm_linear=False,
                                    include_quadratic=chrom_quad,
                                    coefficients=coefficients,
                                    Tspan=Tspan,
-                                   vary=vary_chrom)
+                                   vary=vary_chrom,
+                                   idx_prior_upper_bound=chrom_gp_idx_prior_upper_bound)
     if extra_sigs is not None:
         s += extra_sigs
 
     # adding white-noise, and acting on psr objects
     if ('NANOGrav' in psr.flags['pta'] or 'CHIME' in psr.flags['f']) and not is_wideband:
-        s2 = s + white_noise_block(vary=white_vary, inc_ecorr=True,
+        s2 = s + white_noise_block(vary=white_vary, inc_ecorr=True, gp_ecorr=gp_ecorr,
                                    tnequad=tnequad, select=select)
         model = s2(psr)
         if psr_model:
             Model = s2
     else:
-        s3 = s + white_noise_block(vary=white_vary, inc_ecorr=False,
+        s3 = s + white_noise_block(vary=white_vary, inc_ecorr=False, gp_ecorr=gp_ecorr,
                                    tnequad=tnequad, select=select, ng_twg_setup=ng_twg_setup, wb_efac_sigma=wb_efac_sigma)
         model = s3(psr)
         if psr_model:

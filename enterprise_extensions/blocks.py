@@ -31,7 +31,7 @@ __all__ = ['white_noise_block',
 def channelized_backends(backend_flags):
     """Selection function to split by channelized backend flags only. For ECORR"""
     flagvals = np.unique(backend_flags)
-    ch_b = ['ASP', 'GASP', 'GUPPI', 'PUPPI', 'YUPPI', 'CHIME']
+    ch_b = ['ASP', 'GASP', 'GUPPI', 'PUPPI', 'YUPPI', 'CHIME', 'VEGAS']
     flagvals = filter(lambda x: any(map(lambda y: y in x, ch_b)), flagvals)
     return {flagval: backend_flags == flagval for flagval in flagvals}
 
@@ -227,7 +227,8 @@ def red_noise_block(psd='powerlaw', prior='log-uniform', Tspan=None,
 
         rn = gp_signals.FourierBasisGP(pl, components=components_low,
                                        Tspan=Tspan, coefficients=coefficients,
-                                       combine=combine, selection=selection)
+                                       combine=combine, selection=selection,
+                                       name='red_noise')
 
         rn_flat = gp_signals.FourierBasisGP(pl_flat,
                                             modes=freqs[components_low:],
@@ -242,7 +243,8 @@ def red_noise_block(psd='powerlaw', prior='log-uniform', Tspan=None,
                                        combine=combine,
                                        coefficients=coefficients,
                                        selection=selection,
-                                       modes=modes)
+                                       modes=modes,
+                                       name='red_noise')
 
     if select == 'band+':  # Add the common component as well
         rn = rn + gp_signals.FourierBasisGP(pl, components=components,
@@ -419,13 +421,13 @@ def dm_noise_block(gp_kernel='diag', psd='powerlaw', nondiag_kernel='periodic',
 
         if psd == 'spectrum':
             if not vary:
-                log10_rho_dm = parameter.Constant()
+                log10_rho = parameter.Constant()
             elif prior == 'uniform':
-                log10_rho_dm = parameter.LinearExp(-10, -4, size=components)
+                log10_rho = parameter.LinearExp(-10, -4, size=components)
             elif prior == 'log-uniform':
-                log10_rho_dm = parameter.Uniform(-10, -4, size=components)
+                log10_rho = parameter.Uniform(-10, -4, size=components)
 
-            dm_prior = gpp.free_spectrum(log10_rho=log10_rho_dm)
+            dm_prior = gpp.free_spectrum(log10_rho=log10_rho)
 
         dm_basis = utils.createfourierdesignmatrix_dm(nmodes=components,
                                                       Tspan=Tspan)
@@ -515,7 +517,7 @@ def dm_noise_block(gp_kernel='diag', psd='powerlaw', nondiag_kernel='periodic',
             dm_prior = gpk.dmx_ridge_prior(log10_sigma_ridge=log10_sigma_ridge)
 
     dmgp = gp_signals.BasisGP(dm_prior, dm_basis, name='dm_gp',
-                            coefficients=coefficients) 
+                              coefficients=coefficients)
 
     return dmgp
 
@@ -525,7 +527,8 @@ def chromatic_noise_block(gp_kernel='nondiag', psd='powerlaw',
                           prior='log-uniform', dt=15, df=200,
                           idx=4, include_quadratic=False,
                           Tspan=None, name='chrom', components=30,
-                          coefficients=False, vary=True):
+                          coefficients=False, vary=True,
+                          idx_prior_upper_bound=7):
     """
     Returns GP chromatic noise model :
 
@@ -549,7 +552,9 @@ def chromatic_noise_block(gp_kernel='nondiag', psd='powerlaw',
         frequency-scale for linear interpolation basis (MHz)
     :param idx:
         Index of radio frequency dependence (i.e. DM is 2). Any float will
-        work or 'vary' will vary between [2.5,5]
+        work or 'vary' will vary between [2.5, idx_prior_upper_bound]
+    :param idx_prior_upper_bound:
+        Upper bound on the chromatic index prior. default = 5
     :param include_quadratic:
         Whether to include a quadratic fit.
     :param name: Name of signal
@@ -567,7 +572,7 @@ def chromatic_noise_block(gp_kernel='nondiag', psd='powerlaw',
         if not vary:
             idx = parameter.Constant()
         else:
-            idx = parameter.Uniform(2.5, 5)
+            idx = parameter.Uniform(2.5, idx_prior_upper_bound)
 
     if gp_kernel == 'diag':
         chm_basis = gpb.createfourierdesignmatrix_chromatic(nmodes=components,
@@ -621,12 +626,11 @@ def chromatic_noise_block(gp_kernel='nondiag', psd='powerlaw',
                 log10_p = parameter.Constant()
                 log10_gam_p = parameter.Constant()
 
-            chm_basis = gpk.linear_interp_basis_chromatic(dt=dt*const.day,idx=idx)
+            chm_basis = gpk.linear_interp_basis_chromatic(dt=dt*const.day, idx=idx)
             chm_prior = gpk.periodic_kernel(log10_sigma=log10_sigma,
                                             log10_ell=log10_ell,
                                             log10_gam_p=log10_gam_p,
                                             log10_p=log10_p)
-
 
         elif nondiag_kernel == 'sq_exp':
             # squared-exponential kernel for DM
@@ -640,7 +644,7 @@ def chromatic_noise_block(gp_kernel='nondiag', psd='powerlaw',
             chm_basis = gpk.linear_interp_basis_chromatic(dt=dt*const.day, idx=idx)
             chm_prior = gpk.se_dm_kernel(log10_sigma=log10_sigma,
                                          log10_ell=log10_ell)
-            
+
         elif nondiag_kernel == 'dmx_like':
             # DMX-like signal
             if vary:
@@ -652,7 +656,7 @@ def chromatic_noise_block(gp_kernel='nondiag', psd='powerlaw',
             chm_prior = gpk.dmx_ridge_prior(log10_sigma_ridge=log10_sigma_ridge)
 
     cgp = gp_signals.BasisGP(chm_prior, chm_basis, name=name+'_gp',
-                            coefficients=coefficients)
+                             coefficients=coefficients)
 
     if include_quadratic:
         # quadratic piece
