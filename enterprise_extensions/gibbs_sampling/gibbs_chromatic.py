@@ -578,6 +578,7 @@ class GibbsSampler(object):
         DEweight=50,
         covUpdate=1000,
         burn=10000,
+        init_wn_burn=2000,
         **kwargs
     ):
         """
@@ -621,7 +622,7 @@ class GibbsSampler(object):
             # large number to avoid saving the white noise choice in a txt file
             isave = int(4e9)
             thin = 1
-            Niter = int(niter * wniters + 2000 + 1)
+            Niter = int(niter * wniters + init_wn_burn + 1)
 
             x0 = self._xs[self.get_efacequad_indices]
             ndim = len(x0)
@@ -671,7 +672,10 @@ class GibbsSampler(object):
                     burn=burn,
                     **kwargs
                 )
-        os.remove(savepath + "/pars.txt") # clear old parameter file
+        try:
+            os.remove(savepath + "/pars.txt") # clear old parameter file
+        except:
+            pass
         np.savetxt(savepath + "/pars.txt",
                    list(map(str, self.pta.param_names)), fmt="%s")
         np.savetxt(
@@ -684,20 +688,20 @@ class GibbsSampler(object):
                 1 / self.Tspan,
                 (self.rn_components + 0.001) / self.Tspan,
                 1 / self.Tspan)
-            np.save(savepath + "/rn_freqs.npy", rn_freqs)
+            np.savetxt(savepath + "/rn_freqs.txt", rn_freqs)
         
         if self.vary_dm:
             dm_freqs = np.arange(
                 1 / self.Tspan,
                 (self.dm_components + 0.001) / self.Tspan,
                 1 / self.Tspan)
-            np.save(savepath + "/dm_freqs.npy", dm_freqs)
+            np.savetxt(savepath + "/dm_freqs.txt", dm_freqs)
         if self.vary_chrom:
             chrom_freqs = np.arange(
                 1 / self.Tspan,
                 (self.chrom_components + 0.001) / self.Tspan,
                 1 / self.Tspan)
-            np.save(savepath + "/chrom_freqs.npy", chrom_freqs)
+            np.savetxt(savepath + "/chrom_freqs.txt", chrom_freqs)
         [os.remove(dpa) for dpa in glob.glob(savepath + "/*jump.txt")]
 
         xnew = self._xs.copy()
@@ -710,7 +714,7 @@ class GibbsSampler(object):
             savepath + "/chain_1.npy",
             mode="w+",
             dtype="float32",
-            shape=(2000 + niter, len_x + len_b),
+            shape=(init_wn_burn + niter, len_x + len_b),
             fortran_order=False,
         )
 
@@ -718,8 +722,9 @@ class GibbsSampler(object):
         pbar.set_description("Sampling %s" % self.name)
 #        num_gibbs = np.sum([int(self.vary_rn), int(self.vary_dm), int(self.vary_chrom)])
         # initial wn burn in :
-        print("doing initial white noise burn in ... ")
-        xnew = self.update_white_params(xnew, iters=2000)
+        if init_wn_burn > 0:
+            print("doing initial white noise burn in ... ")
+            xnew = self.update_white_params(xnew, iters=init_wn_burn)
         for ii in pbar:
             if self.vary_wn:
                 xnew = self.update_white_params(xnew, iters=wniters)
@@ -727,15 +732,11 @@ class GibbsSampler(object):
             if self.inc_ecorr and "basis" in self.ecorr_type:
                 xnew = self.update_basis_ecorr_params(xnew, iters=eciters)
 
-#            turn = ii % num_gibbs
-            #if self.vary_rn and turn == 0:
+
             self.update_b(xs=xnew)
+            # update the red, dm, and chrom params in turn
             xnew = self.update_red_params(xs=xnew)
-            #if self.vary_dm and turn == 1:
-                #self.update_b(xs=xnew)
             xnew = self.update_dm_params(xs=xnew)
-            #if self.vary_chrom and turn == 2:
-                #self.update_b(xs=xnew)
             xnew = self.update_chrom_params(xs=xnew)
             
             fp[ii, -len_b:] = self._b
