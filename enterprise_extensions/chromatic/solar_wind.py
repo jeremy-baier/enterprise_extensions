@@ -243,7 +243,7 @@ def solar_wind_block(n_earth=None, ACE_prior=False, det_name='n_earth',
                 else:
                     log10_A_sw = parameter.Constant()
                     gamma_sw = parameter.Constant()
-                sw_prior = utils.powerlaw(log10_A=log10_A_sw, gamma=gamma_sw, components=nmodes)
+                sw_prior = utils.powerlaw(log10_A=log10_A_sw, gamma=gamma_sw)
 
             elif swgp_prior == 'spectrum':
                 # free spectrum GP for SW DM
