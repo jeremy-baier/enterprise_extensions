@@ -3,7 +3,6 @@
 import numpy as np
 from enterprise import constants as const
 from enterprise.signals import deterministic_signals, parameter, signal_base, gp_bases
-from .solar_wind import solar_wind
 
 __all__ = [
     "chrom_exp_decay",
@@ -429,11 +428,11 @@ def dmx_signal(dmx_data, name="dmx_signal", vary=True):
         for dmx_id in sorted(dmx_data):
             dmx_data_tmp = dmx_data[dmx_id]
             dmx.update(
-              {
-                dmx_id: parameter.Normal(
-                  mu=dmx_data_tmp["DMX_VAL"], sigma=dmx_data_tmp["DMX_ERR"]
-                )
-              }
+                {
+                    dmx_id: parameter.Normal(
+                        mu=dmx_data_tmp["DMX_VAL"], sigma=dmx_data_tmp["DMX_ERR"]
+                    )
+                }
             )
     else:
         for dmx_id in sorted(dmx_data):
@@ -446,7 +445,6 @@ def dmx_signal(dmx_data, name="dmx_signal", vary=True):
 
 
 def dm_annual_signal(idx=2, tmin=None, tmax=None, name="dm_s1yr", vary=True):
-def dm_annual_signal(idx=2, name="dm_s1yr"):
     """
     Returns chromatic annual signal (i.e. TOA advance):
 
@@ -487,7 +485,7 @@ def construct_chromatic_cached_parts(
     fmax=None,
     modes=None,
     fref=1400,
-    ):
+):
     """
     Using this function alongside `createfourierdesignmatrix_chromatic_with_additional_caching()`
     enables caching of the achromatic portion of the chromatic Fourier designmatrix as well as caching

@@ -366,11 +366,11 @@ class JumpProposal(object):
                         # extend empirical_distr here:
                         print(f'extending {key}\'s empirical distributions to priors...\n')
                         self.empirical_distr[key] = extend_emp_dists(
-                          pta,
-                          self.empirical_distr[key],
-                          npoints=100_000,
-                          save_ext_dists=save_ext_dists,
-                          outdir=outdir
+                            pta,
+                            self.empirical_distr[key],
+                            npoints=100_000,
+                            save_ext_dists=save_ext_dists,
+                            outdir=outdir
                         )
             else:
                 mask = []

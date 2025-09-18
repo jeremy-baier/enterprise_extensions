@@ -248,9 +248,9 @@ def solar_wind_block(
         n_earth = ACE_SWEPAM_Parameter(size=n_earth_bins.size-1)("n_earth")
     elif n_earth is None and (isinstance(n_earth_bins, list) or
                               isinstance(n_earth_bins, np.ndarray)) and not ACE_prior:
-        n_earth = parameter.Uniform(0,30,size=n_earth_bins.size-1)("n_earth")
+        n_earth = parameter.Uniform(0, 30, size=n_earth_bins.size-1)("n_earth")
     else:
-        pass # set n_earth to the provided value(s) below
+        pass  # set n_earth to the provided value(s) below
 
     deter_sw = solar_wind(n_earth=n_earth, n_earth_bins=n_earth_bins, t_init=t_init, t_final=t_final)
     mean_sw = deterministic_signals.Deterministic(deter_sw, name=det_name)
@@ -262,13 +262,13 @@ def solar_wind_block(
                 sw_basis = createfourierdesignmatrix_solar_dm(modes=modes)
                 nmodes = len(modes)
             elif Tspan is not None:
-                    sw_basis = createfourierdesignmatrix_solar_dm(nmodes=nmodes,
-                                                                  Tspan=Tspan)
+                sw_basis = createfourierdesignmatrix_solar_dm(nmodes=nmodes,
+                                                              Tspan=Tspan)
             if swgp_prior == "powerlaw":
                 if vary_swgp:
                     # sometimes amplitudes larger than 1 break the likelihood
-                    log10_A_sw = parameter.Uniform(-12, 0) # sometimes positive amplitudes break this
-                    gamma_sw = parameter.Uniform(-6, 5) # priors from susurla et al. 2024
+                    log10_A_sw = parameter.Uniform(-12, 0)  # sometimes positive amplitudes break this
+                    gamma_sw = parameter.Uniform(-6, 5)  # priors from susurla et al. 2024
                 else:
                     log10_A_sw = parameter.Constant()
                     gamma_sw = parameter.Constant()
@@ -292,9 +292,9 @@ def solar_wind_block(
             if swgp_prior == "periodic":
                 # Periodic GP kernel for DM
                 if vary_swgp:
-                    log10_sigma = parameter.Uniform(-10, -4) # units are log10(seconds)
-                    log10_ell = parameter.Uniform(1, 4) # units are log10(days)
-                    log10_p = parameter.Uniform(-4, 1.5) # units are log10(years)
+                    log10_sigma = parameter.Uniform(-10, -4)  # units are log10(seconds)
+                    log10_ell = parameter.Uniform(1, 4)  # units are log10(days)
+                    log10_p = parameter.Uniform(-4, 1.5)  # units are log10(years)
                     log10_gam_p = parameter.Uniform(-3, 2)
                 else:
                     log10_sigma = parameter.Constant()
@@ -303,9 +303,9 @@ def solar_wind_block(
                     log10_gam_p = parameter.Constant()
 
                 sw_prior = gpk.periodic_kernel(log10_sigma=log10_sigma,
-                                            log10_ell=log10_ell,
-                                            log10_gam_p=log10_gam_p,
-                                            log10_p=log10_p)
+                                               log10_ell=log10_ell,
+                                               log10_gam_p=log10_gam_p,
+                                               log10_p=log10_p)
             elif swgp_prior == "sq_exp":
                 # squared-exponential GP kernel for DM
                 if vary_swgp:
@@ -338,7 +338,7 @@ def solar_wind_block(
                 sw_prior = gpk.sw_dm_wn_prior(log10_sigma_ne=log10_sigma_ne)
             else:
                 raise ValueError("Invalid triangular-basis SWGP prior specified.")
-        
+
         else:
             raise ValueError("Invalid SWGP basis specified.")
 

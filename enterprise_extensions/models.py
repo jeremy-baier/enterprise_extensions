@@ -31,7 +31,6 @@ from enterprise_extensions.blocks import (
 from enterprise_extensions.chromatic.solar_wind import solar_wind_block
 from enterprise_extensions.timing import timing_block
 
-# from enterprise.signals.signal_base import LookupLikelihood
 
 def model_singlepsr_noise(
     psr,
@@ -45,6 +44,7 @@ def model_singlepsr_noise(
     tm_svd=False,
     tm_norm=True,
     white_vary=True,
+    gp_ecorr=False,
     components=30,
     upper_limit=False,
     is_wideband=False,
@@ -53,6 +53,7 @@ def model_singlepsr_noise(
     dmjump_var=False,
     gamma_val=None,
     dm_var=False,
+    vary_dm=True,
     dm_type="gp",
     dmgp_kernel="diag",
     dm_psd="powerlaw",
@@ -64,6 +65,7 @@ def model_singlepsr_noise(
     dm_df=200,
     dm_Nfreqs=100,
     chrom_gp=False,
+    vary_chrom=True,
     chrom_gp_kernel="nondiag",
     chrom_psd="powerlaw",
     chrom_idx=4,
@@ -72,6 +74,7 @@ def model_singlepsr_noise(
     chrom_dt=15,
     chrom_df=200,
     chrom_Nfreqs=100,
+    vary_dm_dips=True,
     dm_expdip=False,
     dmexp_sign="negative",
     dm_expdip_idx=2,
@@ -138,6 +141,7 @@ def model_singlepsr_noise(
            is_wideband
     :param gamma_val: red noise spectral index to fix
     :param dm_var: whether to explicitly model DM-variations
+    :param vary_dm: whether to vary the DM model GP hyperparams or use constant values
     :param dm_type: gaussian process ('gp') or dmx ('dmx')
     :param dmgp_kernel: diagonal in frequency or non-diagonal
     :param dm_psd: power-spectral density of DM variations
@@ -149,6 +153,7 @@ def model_singlepsr_noise(
     :param dm_df: frequency-scale for DM linear interpolation basis (MHz)
     :param dm_Nfreqs: Number of Fourier modes to use for the dm_gp model.
     :param chrom_gp: include general chromatic noise
+    :param vary_chrom: whether to vary the chromatic GP hyperparams or use constant values
     :param chrom_gp_kernel: GP kernel type to use in chrom ['diag','nondiag']
     :param chrom_psd: power-spectral density of chromatic noise
         ['powerlaw','tprocess','free_spectrum']
@@ -161,6 +166,7 @@ def model_singlepsr_noise(
     :param chrom_dt: time-scale for chromatic linear interpolation basis (days)
     :param chrom_df: frequency-scale for chromatic linear interpolation basis (MHz)
     :param chrom_Nfreqs: Number of Fourier modes to use for the chromatic GP.
+    :param vary_dm_dips: whether to vary the DM dip parameters or keep them fixed
     :param dm_expdip: inclue a DM exponential dip
     :param dmexp_sign: set the sign parameter for dip
     :param dm_expdip_idx: chromatic index of exponential dip
@@ -424,7 +430,7 @@ def model_singlepsr_noise(
                     sign=dm_dual_cusp_sign,
                     symmetric=dm_dual_cusp_sym,
                     name=dual_cusp_name_base + str(dd),
-                    vary=vary_dm)
+                    vary=vary_dm,
                 )
         if dm_sw_deter:
             Tspan = psr.toas.max() - psr.toas.min()
@@ -445,8 +451,7 @@ def model_singlepsr_noise(
                                    include_quadratic=chrom_quad,
                                    coefficients=coefficients,
                                    Tspan=Tspan,
-                                   vary=vary_chrom,
-                                   idx_prior_upper_bound=chrom_gp_idx_prior_upper_bound)
+                                   vary=vary_chrom,)
     if extra_sigs is not None:
         s += extra_sigs
 

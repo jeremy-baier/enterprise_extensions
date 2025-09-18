@@ -170,10 +170,10 @@ def white_noise_block(
         else:
             if name is None:
                 ec = white_signals.EcorrKernelNoise(log10_ecorr=ecorr,
-                                                    selection=backend_ng, name=name)
+                                                    selection=selection_ecorr)
             else:
                 ec = white_signals.EcorrKernelNoise(log10_ecorr=ecorr,
-                                                    selection=backend_ng)
+                                                    selection=selection_ecorr, name=name)
     # combine signals
     if inc_ecorr:
         s = efeq + ec
@@ -670,7 +670,7 @@ def dm_noise_block(
                 elif prior == "gaussian":
                     log10_A_dm = parameter.Normal(logmin, logmax)
             elif not vary:
-              log10_A_dm = parameter.Constant()
+                log10_A_dm = parameter.Constant()
             else:
                 if prior == "uniform":
                     log10_A_dm = parameter.LinearExp(-20, -10)
@@ -783,10 +783,10 @@ def dm_noise_block(
                     log10_rho_dm = parameter.Uniform(-10, -4, size=components)
                 else:
                     log10_rho_dm = parameter.Uniform(-9, -4, size=components)
-                if not vary: # here just overwrite the prior to constant if not varying it
+                if not vary:  # here just overwrite the prior to constant if not varying it
                     log10_rho_dm = parameter.Constant()
 
-            dm_prior = gpp.free_spectrum(log10_rho=log10_rho)
+            dm_prior = gpp.free_spectrum(log10_rho=log10_rho_dm)
 
         if tndm:
             dm_basis = utils.createfourierdesignmatrix_dm_tn(
@@ -893,7 +893,7 @@ def dm_noise_block(
                 log10_sigma_ridge = parameter.Constant()
 
             dm_basis = gpk.linear_interp_basis_dm(dt=dt * const.day)
-            dm_prior = gpk.dmx_ridge_prior(log10_sigma=log10_sigma)
+            dm_prior = gpk.dmx_ridge_prior(log10_sigma=log10_sigma_ridge)
 
     if select is None:
         dmgp = gp_signals.BasisGP(
@@ -1110,7 +1110,7 @@ def chromatic_noise_block(
                 if vary:
                     log10_B = parameter.Uniform(-10, -4)
                 else:
-                    log10B = parameter.Constant()
+                    log10_B = parameter.Constant()
                 chm_prior = gpp.flat_powerlaw(
                     log10_A=log10_A, gamma=gamma, log10_B=log10_B
                 )
@@ -1130,7 +1130,7 @@ def chromatic_noise_block(
                     log10_rho = parameter.Uniform(-9, -4, size=components)
             if vary:
                 log10_rho = parameter.Constant()
- 
+
             chm_prior = gpp.free_spectrum(log10_rho=log10_rho)
 
         if tndm:
