@@ -1128,7 +1128,7 @@ def chromatic_noise_block(
                     log10_rho = parameter.Uniform(-10, -4, size=components)
                 else:
                     log10_rho = parameter.Uniform(-9, -4, size=components)
-            if vary:
+            if not vary:
                 log10_rho = parameter.Constant()
 
             chm_prior = gpp.free_spectrum(log10_rho=log10_rho)
@@ -1155,19 +1155,20 @@ def chromatic_noise_block(
             )
 
     elif gp_kernel == "nondiag":
-        if nondiag_kernel == "periodic":
-            # Periodic GP kernel for DM
-            if vary:
-                log10_sigma = parameter.Uniform(-10, -4)
-                log10_ell = parameter.Uniform(0, 5)
-                log10_p = parameter.Uniform(-2, 3)
-                log10_gam_p = parameter.Uniform(-4, 4)
-            else:
-                log10_sigma = parameter.Constant()
-                log10_ell = parameter.Constant()
-                log10_p = parameter.Constant()
-                log10_gam_p = parameter.Constant()
+        # these are shared between a few of the kernels below
+        if vary:
+            log10_sigma = parameter.Uniform(-10, -4)
+            log10_ell = parameter.Uniform(0, 5)
+            log10_p = parameter.Uniform(-2, 3)
+            log10_gam_p = parameter.Uniform(-4, 4)
+        else:
+            log10_sigma = parameter.Constant()
+            log10_ell = parameter.Constant()
+            log10_p = parameter.Constant()
+            log10_gam_p = parameter.Constant()
 
+        if nondiag_kernel == "periodic":
+            # Periodic GP kernel for Chrom
             chm_basis = gpk.linear_interp_basis_chromatic(dt=dt*const.day, idx=idx)
             chm_prior = gpk.periodic_kernel(
                 log10_sigma=log10_sigma,
@@ -1177,17 +1178,15 @@ def chromatic_noise_block(
             )
 
         elif nondiag_kernel == "sq_exp":
-
+            # Squared-exponential GP kernel for Chrom
             chm_basis = gpk.linear_interp_basis_chromatic(dt=dt * const.day)
-            chm_prior = gpk.periodic_kernel(
+            chm_prior = gpk.se_dm_kernel(
                 log10_sigma=log10_sigma,
                 log10_ell=log10_ell,
-                log10_gam_p=log10_gam_p,
-                log10_p=log10_p,
             )
 
         elif nondiag_kernel == "periodic_rfband":
-            # Periodic GP kernel for DM with RQ radio-frequency dependence
+            # Periodic GP kernel for Chrom with RQ radio-frequency dependence
             if vary:
                 log10_sigma = parameter.Uniform(-10, -4)
                 log10_ell = parameter.Uniform(1, 4)

@@ -245,7 +245,7 @@ def test_model_singlepsr_noise_chrom_diag(nodmx_psrs, caplog):
 def test_model_singlepsr_noise_chrom_vary_idx(nodmx_psrs, caplog):
     # caplog.set_level(logging.CRITICAL)
     m=models.model_singlepsr_noise(nodmx_psrs[1], chrom_gp=True, vary_chrom=True,
-                                   chrom_gp_kernel='diag', chrom_idx='vary')
+                                   chrom_gp_kernel='diag', chrom_idx=None)
     assert hasattr(m, 'get_lnlikelihood')
     assert "J1713+0747_chrom_gp_idx" in m.param_names
     x0 = np.hstack([p.sample() for p in m.params])
