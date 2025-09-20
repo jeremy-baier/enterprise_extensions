@@ -285,7 +285,7 @@ class HyperModel(object):
             sampler.addProposalToCycle(jp.draw_from_chrom_gp_prior, 10)
 
         # SW prior draw
-        if "gp_sw" in jp.snames and len(jp.snames["gp_sw"])!=0:
+        if "sw_gp" in jp.snames and len(jp.snames["gp_sw"])!=0:
             print("Adding Solar Wind DM GP prior draws...\n")
             sampler.addProposalToCycle(jp.draw_from_dm_sw_prior, 10)
 

@@ -902,7 +902,7 @@ class JumpProposal(object):
         q = x.copy()
         lqxy = 0
 
-        signal_name = "gp_sw"
+        signal_name = "sw_gp"
 
         # draw parameter from signal model
         param = np.random.choice(self.snames[signal_name])
@@ -1503,6 +1503,11 @@ def setup_sampler(
         print("Adding DM GP noise prior draws...\n")
         sampler.addProposalToCycle(jp.draw_from_dm_gp_prior, 10)
 
+    # SW prior draw
+    if "sw_gp" in jp.snames and len(jp.snames["sw_gp"])!=0:
+        print("Adding Solar Wind GP prior draws...\n")
+        sampler.addProposalToCycle(jp.draw_from_dm_sw_prior, 10)
+    
     # DM annual prior draw
     if "dm_s1yr" in jp.snames and len(jp.snames["dm_s1yr"])!=0:
         print("Adding DM annual prior draws...\n")
