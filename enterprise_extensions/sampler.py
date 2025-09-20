@@ -1507,7 +1507,7 @@ def setup_sampler(
     if "sw_gp" in jp.snames and len(jp.snames["sw_gp"])!=0:
         print("Adding Solar Wind GP prior draws...\n")
         sampler.addProposalToCycle(jp.draw_from_dm_sw_prior, 10)
-    
+
     # DM annual prior draw
     if "dm_s1yr" in jp.snames and len(jp.snames["dm_s1yr"])!=0:
         print("Adding DM annual prior draws...\n")
