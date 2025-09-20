@@ -271,8 +271,10 @@ def dm_exponential_dip(tmin, tmax, idx=2, sign="negative", name="dmexp", vary=Tr
         sign_param = parameter.Constant()
     elif sign == "positive":
         sign_param = 1.0
-    else:
+    elif sign == "negative":
         sign_param = -1.0
+    else:
+        raise ValueError("Invalid option specified for chromatic dip sign.")
     wf = chrom_exp_decay(
         log10_Amp=log10_Amp_dmexp,
         t0=t0_dmexp,
@@ -319,8 +321,10 @@ def dm_exponential_cusp(
         sign_param = parameter.Constant()
     elif sign == "positive":
         sign_param = 1.0
-    else:
+    elif sign == "negative":
         sign_param = -1.0
+    else:
+        raise ValueError("Invalid option specified for dm exponential cusp sign parameter")
 
     if symmetric:
         log10_tau_dm_cusp_post = 1
@@ -381,8 +385,10 @@ def dm_dual_exp_cusp(
         sign_param = parameter.Constant()
     elif sign == 'positive':
         sign_param = 1.0
-    else:
+    elif sign == "negative":
         sign_param = -1.0
+    else:
+        raise ValueError("Invalid option specified for dm exponential cusp sign parameter")
 
     if symmetric:
         log10_tau_dual_cusp_post_1 = 1

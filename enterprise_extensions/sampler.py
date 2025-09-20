@@ -294,7 +294,7 @@ class JumpProposal(object):
         if isinstance(empirical_distr, list):
             # check if a list of emp dists is provided
             self.empirical_distr = empirical_distr
-        # pass a dictionary of of lists of empirical distributions for a hypermodel
+        # pass a dictionary of lists of empirical distributions for a hypermodel
         elif isinstance(empirical_distr, dict):
             # save the dictionary of empirical distributions to self
             self.empirical_distr = empirical_distr

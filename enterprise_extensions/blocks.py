@@ -32,7 +32,7 @@ __all__ = [
 def channelized_backends(backend_flags):
     """Selection function to split by channelized backend flags only. For ECORR"""
     flagvals = np.unique(backend_flags)
-    ch_b = ['ASP', 'GASP', 'GUPPI', 'PUPPI', 'YUPPI', 'CHIME', 'VEGAS']
+    ch_b = ["ASP", "GASP", "GUPPI", "PUPPI", "YUPPI", "CHIME", "VEGAS"]
     flagvals = filter(lambda x: any(map(lambda y: y in x, ch_b)), flagvals)
     return {flagval: backend_flags == flagval for flagval in flagvals}
 
