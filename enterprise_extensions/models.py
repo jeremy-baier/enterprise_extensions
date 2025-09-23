@@ -326,21 +326,6 @@ def model_singlepsr_noise(
             s += chrom.dmx_signal(dmx_data=dmx_data[psr.name], vary=vary_dm)
         if dm_annual:
             s += chrom.dm_annual_signal(vary=vary_dm)
-        if chrom_gp:
-            s += chromatic_noise_block(
-                gp_kernel=chrom_gp_kernel,
-                psd=chrom_psd,
-                idx=chrom_idx,
-                components=chrom_Nfreqs,
-                Tspan=Tspan,
-                nondiag_kernel=chrom_kernel,
-                dt=chrom_dt,
-                df=chrom_df,
-                include_quadratic=chrom_quad,
-                coefficients=coefficients,
-                vary=vary_chrom,
-            )
-
         if dm_expdip:
             if dm_expdip_tmin is None and dm_expdip_tmax is None:
                 tmin = [psr.toas.min() / const.day for ii in range(num_dmdips)]
@@ -444,14 +429,18 @@ def model_singlepsr_noise(
 
     if chrom_gp:
         s += chromatic_noise_block(gp_kernel=chrom_gp_kernel,
-                                   psd=chrom_psd, idx=chrom_idx,
+                                   psd=chrom_psd,
+                                   idx=chrom_idx,
                                    components=chrom_Nfreqs,
                                    nondiag_kernel=chrom_kernel,
-                                   dt=chrom_dt, df=chrom_df,
+                                   dt=chrom_dt,
+                                   df=chrom_df,
                                    include_quadratic=chrom_quad,
                                    coefficients=coefficients,
                                    Tspan=Tspan,
-                                   vary=vary_chrom,)
+                                   vary=vary_chrom,
+                                   )
+
     if extra_sigs is not None:
         s += extra_sigs
 
