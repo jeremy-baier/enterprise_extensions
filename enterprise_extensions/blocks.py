@@ -1027,6 +1027,8 @@ def chromatic_noise_block(
 
     if idx is None:
         idx = parameter.Uniform(idxmin, idxmax)
+    elif isinstance(idx, float) or isinstance(idx, int):
+        idx = parameter.Constant(idx)
 
     if gp_kernel == "diag":
         if psd in ["powerlaw", "turnover", "broken_powerlaw", "flat_powerlaw"]:
