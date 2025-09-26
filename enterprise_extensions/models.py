@@ -100,9 +100,14 @@ def model_singlepsr_noise(
     num_dm_dual_cusps=1,
     dm_dual_cusp_seqname=None,
     dm_sw_deter=False,
+    deter_n_earth=None,
+    deter_n_earth_bins=None,
     dm_sw_gp=False,
-    swgp_prior=None,
-    swgp_basis=None,
+    swgp_prior='powerlaw',
+    swgp_basis='fourier',
+    swgp_Nfreqs=100,
+    swgp_dt=15,
+    vary_swgp=False,
     coefficients=False,
     extra_sigs=None,
     psr_model=False,
@@ -417,15 +422,20 @@ def model_singlepsr_noise(
                     name=dual_cusp_name_base + str(dd),
                     vary=vary_dm,
                 )
-        if dm_sw_deter:
-            Tspan = psr.toas.max() - psr.toas.min()
-            s += solar_wind_block(
-                ACE_prior=True,
-                include_swgp=dm_sw_gp,
-                swgp_prior=swgp_prior,
-                swgp_basis=swgp_basis,
-                Tspan=Tspan,
-            )
+    if dm_sw_deter or dm_sw_gp:
+        s += solar_wind_block(
+            ACE_prior=False,
+            n_earth=deter_n_earth,
+            n_earth_bins=deter_n_earth_bins,
+            include_deterministic=dm_sw_deter,
+            include_swgp=dm_sw_gp,
+            swgp_prior=swgp_prior,
+            swgp_basis=swgp_basis,
+            Tspan=Tspan,
+            nmodes=swgp_Nfreqs,
+            dt=swgp_dt,
+            vary_swgp=vary_swgp,
+        )
 
     if chrom_gp:
         s += chromatic_noise_block(gp_kernel=chrom_gp_kernel,

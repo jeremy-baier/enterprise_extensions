@@ -187,6 +187,7 @@ def createfourierdesignmatrix_solar_dm(
 
 
 def solar_wind_block(
+    include_deterministic=True,
     n_earth=None,
     ACE_prior=False,
     det_name='n_earth',
@@ -201,7 +202,7 @@ def solar_wind_block(
     modes=None,
     nmodes=15,
     dt=3,
-    vary_swgp=True
+    vary_swgp=True,
 ):
     """
     Returns Solar Wind DM noise model. Recommended is a time-independent, deterministic model with
@@ -212,13 +213,22 @@ def solar_wind_block(
     The GP has common prior parameters between all pulsars,
     but the realizations are different for all pulsars.
 
+    :param include_deterministic:
+        Whether or not to include a deterministic solar wind model.
     :param n_earth:
         Solar electron density at 1 AU.
+        if 'include_deterministic' is True:
+            None -- samples in those parameter(s).
+            List -- sets the n_earth parameter(s) fixed to those values.
     :param ACE_prior:
         Whether to use the ACE SWEPAM data as an astrophysical prior.
         Only for deterministic models.
-    :param name:
-        Name of the signal.
+    :param det_name:
+        Name of the deterministic signal included.
+    :param n_earth_bins:
+        Piecewise fit for a deterministic n_earth. Only used if 'include_deterministic' is True.
+        List - list of bin edges ( MJDs ) which should be 1+number of bins in length.
+        None - use 1 n_earth parameter for the entire dataset.
     :param swgp_prior:
         Prior function for solar wind Gaussian process. Default is a power law.
         Options for 'Fourier' swgp basis: ['powerlaw','spectrum']
@@ -227,34 +237,39 @@ def solar_wind_block(
     :param swgp_basis:
         Basis to be used for solar wind Gaussian process.
         Options includes ['fourier','linear_interp','triangular']
+    :param gp_name:
+        Name for the GP signal included.
     :param Tspan:
         Sets frequency sampling f_i = i / Tspan. Default will
         use overall time span for individual pulsar. Default is to use 15
         frequencies (1/Tspan,15/Tspan).
+    :param modes:
+        Explicitly gives the Fourier modes to use for the fourier basis SWGP.
     :param nmodes:
-        Number of Fourier modes to use for the SW Fourier design matrix.
+        Number of nyquist spaced Fourier modes to use for the SW Fourier design matrix.
     :param dt:
         Time interval for linear interpolation basis in days.
         Only needed if swgp_basis is 'linear_interp'.
     :param vary_swgp:
         Whether to vary the SW GP hyperparameters or set them constant.
     """
-    if n_earth is None and n_earth_bins is None and not ACE_prior:
-        n_earth = parameter.Uniform(0, 30)("n_earth")
-    elif n_earth is None and n_earth_bins is None and ACE_prior:
-        n_earth = ACE_SWEPAM_Parameter()("n_earth")
-    elif n_earth is None and (isinstance(n_earth_bins, list) or
-                              isinstance(n_earth_bins, np.ndarray)) and ACE_prior:
-        n_earth = ACE_SWEPAM_Parameter(size=n_earth_bins.size-1)("n_earth")
-    elif n_earth is None and (isinstance(n_earth_bins, list) or
-                              isinstance(n_earth_bins, np.ndarray)) and not ACE_prior:
-        n_earth = parameter.Uniform(0, 30, size=n_earth_bins.size-1)("n_earth")
-    else:
-        pass  # set n_earth to the provided value(s) below
+    if include_deterministic:
+        if n_earth is None and n_earth_bins is None and not ACE_prior:
+            n_earth = parameter.Uniform(0, 30)("n_earth")
+        elif n_earth is None and n_earth_bins is None and ACE_prior:
+            n_earth = ACE_SWEPAM_Parameter()("n_earth")
+        elif n_earth is None and (isinstance(n_earth_bins, list) or
+                                  isinstance(n_earth_bins, np.ndarray)) and ACE_prior:
+            n_earth = ACE_SWEPAM_Parameter(size=n_earth_bins.size-1)("n_earth")
+        elif n_earth is None and (isinstance(n_earth_bins, list) or
+                                  isinstance(n_earth_bins, np.ndarray)) and not ACE_prior:
+            n_earth = parameter.Uniform(0, 30, size=n_earth_bins.size-1)("n_earth")
+        else:
+            pass  # set n_earth to the provided value(s) below
 
-    deter_sw = solar_wind(n_earth=n_earth, n_earth_bins=n_earth_bins, t_init=t_init, t_final=t_final)
-    mean_sw = deterministic_signals.Deterministic(deter_sw, name=det_name)
-    sw_model = mean_sw
+        deter_sw = solar_wind(n_earth=n_earth, n_earth_bins=n_earth_bins, t_init=t_init, t_final=t_final)
+        mean_sw = deterministic_signals.Deterministic(deter_sw, name=det_name)
+        sw_model = mean_sw
 
     if include_swgp:
         if swgp_basis == "fourier":
@@ -343,7 +358,10 @@ def solar_wind_block(
             raise ValueError("Invalid SWGP basis specified.")
 
         gp_sw = gp_signals.BasisGP(sw_prior, sw_basis, name=gp_name)
-        sw_model += gp_sw
+        if include_deterministic:
+            sw_model += gp_sw
+        else:
+            sw_model = gp_sw
 
     return sw_model
 
