@@ -279,6 +279,8 @@ def solar_wind_block(
             elif Tspan is not None:
                 sw_basis = createfourierdesignmatrix_solar_dm(nmodes=nmodes,
                                                               Tspan=Tspan)
+            else:
+                raise ValueError("Must specificy either the Tspan & nmodes or modes in solar wind block")
             if swgp_prior == "powerlaw":
                 if vary_swgp:
                     # sometimes amplitudes larger than 1 break the likelihood

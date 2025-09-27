@@ -106,8 +106,9 @@ def model_singlepsr_noise(
     swgp_prior='powerlaw',
     swgp_basis='fourier',
     swgp_Nfreqs=100,
+    swgp_modes=None,
     swgp_dt=15,
-    vary_swgp=False,
+    vary_swgp=True,
     coefficients=False,
     extra_sigs=None,
     psr_model=False,
@@ -423,6 +424,8 @@ def model_singlepsr_noise(
                     vary=vary_dm,
                 )
     if dm_sw_deter or dm_sw_gp:
+        if (swgp_Nfreqs is None or Tspan is None) and swgp_modes is None and dm_sw_gp and swgp_basis == 'fourier':
+            raise ValueError("Must specify Tspan & swgp_Nfreqs OR swgp_modes for fourier basis swgp model.")
         s += solar_wind_block(
             ACE_prior=False,
             n_earth=deter_n_earth,
@@ -433,6 +436,7 @@ def model_singlepsr_noise(
             swgp_basis=swgp_basis,
             Tspan=Tspan,
             nmodes=swgp_Nfreqs,
+            modes=swgp_modes,
             dt=swgp_dt,
             vary_swgp=vary_swgp,
         )
