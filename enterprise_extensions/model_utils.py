@@ -302,6 +302,6 @@ def mask_filter(psr, mask):
         psr._flags[key] = psr._flags[key][mask]
 
     if psr._planetssb is not None:
-        psr._planetssb = psr.planetssb[mask, :, :]
+        psr._planetssb = psr._planetssb[mask, :, :]
 
     psr.sort_data()
