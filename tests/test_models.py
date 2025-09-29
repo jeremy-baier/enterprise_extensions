@@ -80,14 +80,14 @@ def test_model_singlepsr_noise_sw(nodmx_psrs, caplog):
     # caplog.set_level(logging.CRITICAL)
     m=models.model_singlepsr_noise(nodmx_psrs[1], dm_sw_deter=True, dm_sw_gp=True,
                                    swgp_basis='fourier', swgp_prior='powerlaw',
-                                   swgp_modes=np.linspace(1/10/365.25/86400, 35/10/365.25/86400, 35)
+                                   swgp_modes=np.linspace(1/(10*const.yr), 35/(10*const.yr), 35)
                                    )
     assert hasattr(m, 'get_lnlikelihood')
     x0 = {pname: p.sample() for pname, p in zip(m.param_names, m.params)}
     m.get_lnlikelihood(x0)
     m=models.model_singlepsr_noise(nodmx_psrs[1], dm_sw_deter=True, dm_sw_gp=True,
                                    swgp_basis='fourier', swgp_prior='spectrum',
-                                   swgp_Nfreqs=75, Tspan=10*365.25*86400
+                                   swgp_Nfreqs=75, Tspan=10*const.yr
                                    )
     assert hasattr(m, 'get_lnlikelihood')
     x0 = [p.sample() for pname, p in zip(m.param_names, m.params)]  # hstack for free specs
@@ -142,7 +142,7 @@ def test_model_singlepsr_noise_dip_cusp(nodmx_psrs, caplog):
                   'dm_dual_cusp_tmin': [54700, 57450],
                   'dm_dual_cusp_tmax': [54850, 57560], }
     m=models.model_singlepsr_noise(nodmx_psrs[1], dm_sw_deter=True,
-                                   dm_sw_gp=True, Tspan=10*86400*365.25, **dip_kwargs)
+                                   dm_sw_gp=True, Tspan=10*const.yr, **dip_kwargs)
     assert hasattr(m, 'get_lnlikelihood')
     x0 = {pname: p.sample() for pname, p in zip(m.param_names, m.params)}
     m.get_lnlikelihood(x0)
